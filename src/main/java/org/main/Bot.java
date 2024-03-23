@@ -13,7 +13,7 @@ public class Bot {
     public static void main(String[] args) {
         try {
             // Initialize the JDA builder with the bot token and necessary intents
-            JDABuilder builder = JDABuilder.createDefault("MTIxMTE4NjY3MjYzNzgzNzM1Mg.G8nu6b.nbNZzLyDHcGl_h5S7jqzTt3d7xmwbVNGFEfjVQ");
+            JDABuilder builder = JDABuilder.createDefault("token");
             builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.DIRECT_MESSAGES);
             builder.setActivity(Activity.playing("Type /help for commands"));
 
