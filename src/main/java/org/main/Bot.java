@@ -6,6 +6,9 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.main.commands.CommandListener;
+import org.main.listeners.ButtonClickListener;
+import org.main.listeners.ModalEventListener;
+import org.main.listeners.SelectionMenuListener;
 
 
 public class Bot {
@@ -18,7 +21,10 @@ public class Bot {
             builder.setActivity(Activity.playing("Type /help for commands"));
 
             // Add an event listener that will handle commands
-            builder.addEventListeners(new CommandListener());
+            builder.addEventListeners(new CommandListener(),
+                                      new ButtonClickListener(),
+                                      new ModalEventListener(),
+                                      new SelectionMenuListener());
 
             // Build the JDA instance
             JDA jda = builder.build();
