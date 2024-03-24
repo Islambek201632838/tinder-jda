@@ -1,11 +1,11 @@
-package org.main.listeners;
+package org.main.listeners.buttons;
 
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.main.commands.ProfileCommand;
 
-public class ButtonClickListener extends ListenerAdapter {
+public class ProfileButtonClickListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
@@ -21,7 +21,6 @@ public class ButtonClickListener extends ListenerAdapter {
         else if(event.getComponentId().equals("select_university")){
             ProfileCommand.selectUniversity(event);
         }
-
 
     }
 }

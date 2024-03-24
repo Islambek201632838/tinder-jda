@@ -6,9 +6,11 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.main.commands.CommandListener;
-import org.main.listeners.ButtonClickListener;
+import org.main.listeners.buttons.LikesButtonClickListener;
+import org.main.listeners.buttons.ProfileButtonClickListener;
 import org.main.listeners.ModalEventListener;
 import org.main.listeners.SelectionMenuListener;
+import org.main.listeners.buttons.SearchButtonClickListener;
 
 
 public class Bot {
@@ -16,13 +18,15 @@ public class Bot {
     public static void main(String[] args) {
         try {
             // Initialize the JDA builder with the bot token and necessary intents
-            JDABuilder builder = JDABuilder.createDefault("token");
+            JDABuilder builder = JDABuilder.createDefault("");
             builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.DIRECT_MESSAGES);
             builder.setActivity(Activity.playing("Type /help for commands"));
 
             // Add an event listener that will handle commands
             builder.addEventListeners(new CommandListener(),
-                                      new ButtonClickListener(),
+                                      new ProfileButtonClickListener(),
+                                      new SearchButtonClickListener(),
+                                      new LikesButtonClickListener(),
                                       new ModalEventListener(),
                                       new SelectionMenuListener());
 
