@@ -1,29 +1,82 @@
 package org.main.listeners;
 
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
-import net.dv8tion.jda.api.interactions.modals.ModalMapping;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
 
 public class ModalEventListener extends ListenerAdapter {
-    @Override
-    public void onModalInteraction(@NotNull ModalInteractionEvent event) {
-        // Check if the modal submitted is the one we're interested in
-        if ("create_profile_modal".equals(event.getModalId())) {
-            // Retrieve the values safely using Optional
-            String name = event.getValue("name_input") != null ? event.getValue("name_input").getAsString() : "N/A";
-            String degree = event.getValue("degree_input") != null ? event.getValue("degree_input").getAsString() : "N/A";
-            String age = event.getValue("age_input") != null ? event.getValue("age_input").getAsString() : "N/A";
-            String aboutMe = event.getValue("about_me_input") != null ? event.getValue("about_me_input").getAsString() : "N/A";
+    private final String url = "http://127.0.0.1:8080/profiles";
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-            // Compile the data into a string format
-            String data = String.format("Name: %s\nDegree: %s\nAge: %s\nAbout Me: %s", name, degree, age, aboutMe);
+    private static class Profile {
+        public String id;
+        public String name;
+        public String degree;
+        public String age;
+        public String aboutMe;
 
-            // Reply with the data
-            event.reply(data).setEphemeral(true).queue();
+        public Profile(String id, String name, String degree, String age, String aboutMe) {
+            this.id = id;
+            this.name = name;
+            this.degree = degree;
+            this.age = age;
+            this.aboutMe = aboutMe;
         }
     }
 
+    private String toJson(Profile profile) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(profile);
+    }
+
+    @Override
+    public void onModalInteraction(@NotNull ModalInteractionEvent event) {
+        if (!"create_profile_modal".equals(event.getModalId())) {
+            return;
+        }
+
+        // Defer the reply. This acknowledges the interaction immediately and gives you time to process the request.
+        event.deferReply(true).queue();
+
+        // Extract the modal values.
+        String id = event.getUser().getId();
+        String name = getValue(event, "name_input");
+        String degree = getValue(event, "degree_input");
+        String age = getValue(event, "age_input");
+        String aboutMe = getValue(event, "about_me_input");
+
+        Profile profile = new Profile(id, name, degree, age, aboutMe);
+
+        // Process the request asynchronously.
+        CompletableFuture.runAsync(() -> {
+            try {
+                String jsonPayload = toJson(profile);
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                        .build();
+
+                HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+                // Respond to the interaction.
+                event.getHook().editOriginal("Profile updated successfully!").queue();
+            } catch (Exception e) {
+                e.printStackTrace();
+                event.getHook().editOriginal("Failed to update profile.").queue();
+            }
+        });
+    }
+
+    private String getValue(ModalInteractionEvent event, String key) {
+        String parameter = event.getValue(key) != null ? event.getValue(key).getAsString() : "N/A";
+        return parameter;
+    }
 }
